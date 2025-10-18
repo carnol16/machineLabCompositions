@@ -12,6 +12,9 @@ oscSends osc;
 
 HMM hmm;
 
+"192.168.1.145" => string ipAddress;
+8001 => int port;
+
 float durArray[0];
 500::ms => dur beat;
 
@@ -27,7 +30,7 @@ fun void noteDur() {
 
     0.0 => float counter;
 
-    for (0 => int i; counter < 16 && i < length; i++) {
+    for (0 => int i; counter < length / 2 && i < length; i++) {
         float dur;
 
         if (results1[i] == 0) { 0.5 => dur; }
@@ -63,7 +66,7 @@ fun void noteDur() {
 
 fun void marimbotSend(int note, int vel){
 
-    osc.init("localhost", 50000);
+    osc.init(ipAddress, port);
     osc.send("/marimba", note, vel);
 
 }

@@ -59,7 +59,7 @@ knn.train(features, labels);
 //bpm
 float durArray[0];
 int orderArray[0];
-bpmClass.bpm(160) => float msPerBeat;
+bpmClass.bpm(60) => float msPerBeat;
 msPerBeat::ms => dur beat;
 
 //rhythm set
@@ -70,7 +70,7 @@ fun void noteDur() {
     [0, 1, 0, 2, 5, 1, 5, 1, 2, 1, 3, 1] @=> int observations[];
     hmm.train(2, 6, observations);
     int results1[length];
-    hmm.generate(length, results1);ç
+    hmm.generate(length, results1);
 
     0.0 => float counter;
 
@@ -79,9 +79,9 @@ fun void noteDur() {
         if (results1[i] == 0) { 0.5 => dur; }
         else if (results1[i] == 1) { 1.0 => dur; }
         else if (results1[i] == 2) { 2.0 => dur; }
-        else if (results1[i] == 3) { 0.66 => dur; }
-        else if (results1[i] == 4) { 1.33 => dur; }
-        else if (results1[i] == 5) { 3.0 => dur; }
+        // else if (results1[i] == 3) { 0.66 => dur; }
+        // else if (results1[i] == 4) { 1.33 => dur; }
+        // else if (results1[i] == 5) { 3.0 => dur; }
         else { continue; }
 
         counter + dur => counter;
@@ -122,6 +122,10 @@ fun void marimbotPlay(string instrument, int note, int vel, dur duration) {
 
 }
 
+fun void breakBoPlay(){
+    osc.send("/breakBot", 1, 127);
+}
+
 
 
 // Generate and play rhythmic chord sequence
@@ -132,7 +136,7 @@ fun void rhythmicChordPattern() {
     //chord or arp
 
     [0, 1, 0, 1, 1, 1, 0, 1] @=> int observations2[];
-    hmm.train( 2, 36, observations2 );
+    hmm.train( 2, 2, observations2 );
     int results2[16];
     hmm.generate( 16, results2 );
 
@@ -161,7 +165,6 @@ fun void rhythmicChordPattern() {
                 if(note < 60 && vel < 95){
                     95 => vel;
                 }
-
                 spork ~ marimbotPlay(labelNames[0], note, vel, durTime);
             }
 
@@ -180,7 +183,6 @@ fun void rhythmicChordPattern() {
                 marimbotPlay(labelNames[0], note, vel, durTime / noteSetLength);
             }
         }
-
         <<< "Chord", i, "Dur:", durArray[i], "beats → Notes:", noteList >>>;
         durTime => now;
     }
@@ -189,7 +191,9 @@ fun void rhythmicChordPattern() {
 }
 
 while (true) {
-    rhythmicChordPattern();  // generate + play new pattern
+    breakBoPlay();
+    //beat => now;
+    rhythmicChordPattern(); // generate + play new pattern
 }
 
 
