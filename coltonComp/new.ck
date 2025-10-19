@@ -23,3 +23,14 @@ for(0 => int i; i < 4; i++){
     beat / 2 => now;
 }
 
+
+// Trimpbeat MIDI notes
+[60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+70, 71, 72, 73, 74, 75, 76, 77, 78, 79] @=> int tbScl[];
+
+
+for(0 => int i; i < tbScl.size(); i++){
+    send.send("/trimpbeat", tbScl[i], 127);
+    100::ms => now;
+    send.send("/trimpbeat", tbScl[i], 0);
+}

@@ -32,7 +32,7 @@ osc.init("192.168.1.145", 8001);
 [[65,105],[69,83],[74,87]],
 [[67,110],[71,88],[76,100]],
 [[69,108],[72,77],[77,85]], 
-[[71,115],[74,92],[79,98]], 
+[[71,115],[74,92],[81,98]], 
 [[72,97],[76,85],[81,90]], 
 [[74,120],[77,100],[83,110]], 
 [[76,110],[79,85],[84,95]]] @=> int noteSets[][][];
@@ -59,13 +59,15 @@ knn.train(features, labels);
 //bpm
 float durArray[0];
 int orderArray[0];
-bpmClass.bpm(60) => float msPerBeat;
+bpmClass.bpm(80) => float msPerBeat;
 msPerBeat::ms => dur beat;
+16 => int totalBeats;
 
 //rhythm set
 fun void noteDur() {
+    totalBeats * 1.0 => float remainderLength;
     durArray.clear();
-    32 => int length;
+    totalBeats * 2 => int length;
 
     [0, 1, 0, 2, 5, 1, 5, 1, 2, 1, 3, 1] @=> int observations[];
     hmm.train(2, 6, observations);
@@ -74,24 +76,24 @@ fun void noteDur() {
 
     0.0 => float counter;
 
-    for (0 => int i; counter < 16 && i < length; i++) {
-        float dur;
-        if (results1[i] == 0) { 0.5 => dur; }
-        else if (results1[i] == 1) { 1.0 => dur; }
-        else if (results1[i] == 2) { 2.0 => dur; }
+    for (0 => int i; counter < totalBeats && i < length; i++) {
+        float duration;
+        if (results1[i] == 0) { 0.5 => duration; }
+        else if (results1[i] == 1) { 1.0 => duration; }
+        else if (results1[i] == 2) { 2.0 => duration; }
         // else if (results1[i] == 3) { 0.66 => dur; }
         // else if (results1[i] == 4) { 1.33 => dur; }
         // else if (results1[i] == 5) { 3.0 => dur; }
         else { continue; }
 
-        counter + dur => counter;
-        durArray << dur;
+        counter + duration => counter;
+        durArray << duration;
         chout <= results1[i] <= " ";
     }
     chout <= IO.newline();
 
-    if (counter > 16.0) {
-        counter - 16.0 => float remainder;
+    if (counter > remainderLength) {
+        counter - remainderLength => float remainder;
         <<<"Over by:", remainder>>>;
 
         durArray[durArray.size() - 1] => float lastDur;
@@ -123,7 +125,16 @@ fun void marimbotPlay(string instrument, int note, int vel, dur duration) {
 }
 
 fun void breakBoPlay(){
-    osc.send("/breakBot", 1, 127);
+    for(0 => int i; i < totalBeats; i++){
+        osc.send("/breakBot", 1, 127);
+        if(i % 2 == 1){
+            osc.send("/breakBot", 5, 127);
+        }
+        if(i % 4 == 0){
+            osc.send("/breakBot", 11, 127);
+        }
+        beat => now;
+    }
 }
 
 
@@ -135,18 +146,17 @@ fun void rhythmicChordPattern() {
 
     //chord or arp
 
-    [0, 1, 0, 1, 1, 1, 0, 1] @=> int observations2[];
+    [0, 1, 0, 0, 1, 0, 0, 1] @=> int observations2[];
     hmm.train( 2, 2, observations2 );
-    int results2[16];
-    hmm.generate( 16, results2 );
+    int results2[totalBeats];
+    hmm.generate( totalBeats, results2 );
 
     // make 32 random chords from noteSets
     int chordSeq[0][0][0]; 
-    for (int i; i < 32; i++) {
+    for (int i; i < totalBeats * 2; i++) {
         Math.random2(0, noteSets.size()-1) => int idx;
         chordSeq << noteSets[idx];
     }
-
     // play through pattern
     for (int i; i < durArray.size() && i < chordSeq.size(); i++) {
         durArray[i] * beat => dur durTime;
@@ -166,6 +176,7 @@ fun void rhythmicChordPattern() {
                     95 => vel;
                 }
                 spork ~ marimbotPlay(labelNames[0], note, vel, durTime);
+
             }
 
             if(results2[j] == 1){
@@ -181,7 +192,9 @@ fun void rhythmicChordPattern() {
                 }   
 
                 marimbotPlay(labelNames[0], note, vel, durTime / noteSetLength);
+                
             }
+            
         }
         <<< "Chord", i, "Dur:", durArray[i], "beats → Notes:", noteList >>>;
         durTime => now;
@@ -191,9 +204,9 @@ fun void rhythmicChordPattern() {
 }
 
 while (true) {
-    breakBoPlay();
-    //beat => now;
-    rhythmicChordPattern(); // generate + play new pattern
+    //spork ~ breakBoPlay();
+    spork~rhythmicChordPattern(); // generate + play new pattern
+    beat * totalBeats => now;
 }
 
 
