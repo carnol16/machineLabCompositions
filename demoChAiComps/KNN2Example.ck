@@ -10,10 +10,12 @@
 KNN2 knn;
 HMM hmm;
 oscSends osc;
+oscSends oscLydia;
 bpmSet bpmClass;
 
 osc.init("192.168.1.145", 8001);
-["/marimba"] @=> string labelNames[];
+oscLydia.init("192.168.1.145", 50000);
+["/marimba", "/trimpbeat"] @=> string labelNames[];
 
 // Training note sets (3-note chords)
 [[[45,127],[48,80],[52,90]], 
@@ -35,7 +37,32 @@ osc.init("192.168.1.145", 8001);
 [[71,115],[74,92],[81,98]], 
 [[72,97],[76,85],[81,90]], 
 [[74,120],[77,100],[83,110]], 
-[[76,110],[79,85],[84,95]]] @=> int noteSets[][][];
+[[76,110],[81,85],[84,95]]] @=> int noteSets[][][];
+
+// tbScl-based 3-note chord sets (mirrors noteSets)
+[
+    [[60,100],[64,85],[67,90]],   // C major
+    [[61,95],[64,80],[68,88]],    // C# diminished-ish / passing
+    [[62,105],[65,85],[69,90]],   // D minor
+    [[63,100],[67,85],[70,90]],   // D# diminished-ish
+    [[64,110],[67,90],[71,95]],   // E minor
+    [[65,108],[69,88],[72,95]],   // F major
+    [[66,107],[69,85],[73,92]],   // F# diminished / passing
+    [[67,115],[71,90],[74,95]],   // G major
+    [[68,110],[72,85],[75,90]],   // G# diminished / color
+    [[69,120],[72,90],[76,95]],   // A minor
+    [[70,105],[74,85],[77,90]],   // A# major
+    [[71,115],[75,88],[78,95]],   // B diminished / color
+    [[72,120],[76,90],[79,95]],   // C major (higher)
+    [[73,108],[77,88],[79,92]],   // C# passing
+    [[74,110],[78,85],[79,90]],   // D minor high
+    [[75,115],[79,87],[79,93]],   // D# passing
+    [[76,120],[79,90],[79,95]],   // E minor / top
+    [[77,110],[79,85],[79,90]],   // F major color
+    [[78,115],[79,88],[79,90]],   // G major color
+    [[79,120],[79,95],[79,95]]    // top unison / resolution
+] @=> int tbSclSets[][][];
+
 
 3 => int noteSetLength;
 
@@ -112,15 +139,15 @@ fun void noteDur() {
 
 // Send + play OSC note
 
-fun void marimbotSend(string instrument, int note, int vel) {
+fun void instSend(string instrument, int note, int vel) {
     osc.send(instrument, note, vel);
 }
 
-fun void marimbotPlay(string instrument, int note, int vel, dur duration) {
+fun void instPlay(string instrument, int note, int vel, dur duration) {
     
-    marimbotSend(instrument, note, vel);
+    instSend(instrument, note, vel);
     duration => now;
-    marimbotSend(instrument, note, 0);    
+    instSend(instrument, note, 0);    
 
 }
 
@@ -141,7 +168,7 @@ fun void breakBoPlay(){
 
 // Generate and play rhythmic chord sequence
 
-fun void rhythmicChordPattern() {
+fun void rhythmicChordPattern(int name) {
     noteDur(); // fill durArray
 
     //chord or arp
@@ -175,7 +202,7 @@ fun void rhythmicChordPattern() {
                 if(note < 60 && vel < 95){
                     95 => vel;
                 }
-                spork ~ marimbotPlay(labelNames[0], note, vel, durTime);
+                spork ~ instPlay(labelNames[name], note, vel, durTime);
 
             }
 
@@ -191,7 +218,7 @@ fun void rhythmicChordPattern() {
                     95 => vel;
                 }   
 
-                marimbotPlay(labelNames[0], note, vel, durTime / noteSetLength);
+                instPlay(labelNames[name], note, vel, durTime / noteSetLength);
                 
             }
             
@@ -205,8 +232,9 @@ fun void rhythmicChordPattern() {
 
 while (true) {
     //spork ~ breakBoPlay();
-    spork~rhythmicChordPattern(); // generate + play new pattern
-    beat * totalBeats => now;
+    spork~rhythmicChordPattern(0); // generate + play new pattern
+    spork~rhythmicChordPattern(1);
+
 }
 
 

@@ -34,4 +34,7 @@ fun void testBeaters(int speed) {
     }    
 }
 
-testBeaters(100);
+while(true){
+    tbPlay(tbScl[2], 127, 100);
+    500::ms => now;
+}
