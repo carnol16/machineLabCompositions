@@ -71,11 +71,7 @@ oscLydia.init("192.168.1.145", 50000);
 
 3 => int noteSetLength;
 
-
-
-//--------------------------------------
 // Build features + labels for KNN
-//--------------------------------------
 float features[0][0];
 int labels[0];
 
@@ -102,7 +98,7 @@ knn.train(features, labels);
 float durArrayMarimba[0];
 float durArrayLydia[0];
 int orderArray[0];
-bpmClass.bpm(60) => float msPerBeat;
+bpmClass.bpm(80) => float msPerBeat;
 msPerBeat::ms => dur beat;
 16 => int totalBeats;
 
@@ -190,97 +186,161 @@ fun void breakBoPlay(){
 
 // Generate and play rhythmic chord sequence
 
-fun void rhythmicChordPattern(int name) {
-    // Each instrument gets its own unique rhythm
-    noteDur() @=> float durArray[];
+// rhythmicChordPattern()
+// AI-driven rhythmic chord/arpeggio generator
+// Uses HMM for rhythmic mode switching (chord vs arp)
+// and KNN for predictive chord sequence generation
 
-    // HMM to decide per-beat behavior (0 = chord, 1 = arp)
+fun void rhythmicChordPattern(int name){
+    // 1. Duration array setup
+    noteDur() @=> float durArray[];   // rhythmic durations per step (in beats)
+
+
+    // 2. Hidden Markov Model rhythm pattern
     [0, 1, 0, 0, 1, 0, 0, 1] @=> int observations2[];
     hmm.train(2, 2, observations2);
     int results2[totalBeats * 2];
     hmm.generate(totalBeats * 2, results2);
 
+    // 3. Load instrument chord set
     pitchedNoteSets[name] @=> int currentNoteSet[][][];
-
-    // Create random chord sequence
     int chordSeq[0][0][0];
-    for (int i; i < totalBeats * 2; i++) {
-        Math.random2(0, currentNoteSet.size() - 1) => int idx;
-        chordSeq << currentNoteSet[idx];
+
+    // 4. Seed chord (random start)
+    Math.random2(0, currentNoteSet.size() - 1) => int idx;
+    currentNoteSet[idx] @=> int lastChord[][];
+    chordSeq << lastChord;
+
+    // Track last two chord indices to avoid immediate repeats
+    int recentChords[2];
+    [-1, -1] @=> recentChords;
+
+    <<< "---- Starting rhythmicChordPattern() for", labelNames[name], "----" >>>;
+    <<< "Initial chord index:", idx, "Chord notes:" >>>;
+    for (int n; n < lastChord.size(); n++)
+        <<< "   Note:", lastChord[n][0], "Vel:", lastChord[n][1] >>>;
+
+    // 5. Pitch-based KNN-driven chord prediction
+    for (1 => int i; i < durArray.size(); i++)
+    {
+        // Extract feature vector: pitch statistics
+        float lastPitches[0];
+        float pitchSum, pitchMin, pitchMax;
+        9999 => pitchMin;
+        0 => pitchMax;
+
+        // Loop through each note in the last chord
+        for (0 => int j; j < lastChord.size(); j++)
+        {
+            lastChord[j][0] => float pitch;
+            // Add small random noise to avoid identical vectors
+            (pitch + (Math.random2(-10, 10) / 10.0)) => float noisyPitch;
+            lastPitches << noisyPitch;
+            pitchSum + noisyPitch => noisyPitch;
+            if (noisyPitch < pitchMin){
+                noisyPitch => pitchMin;
+            }
+            if (noisyPitch > pitchMax){
+                noisyPitch => pitchMax;
+            }
+        }
+
+        // Add average and range as extra features
+        lastPitches << (pitchSum / lastChord.size());
+        lastPitches << (pitchMax - pitchMin);
+
+        // KNN prediction
+        float probs[0];
+        knn.predict(lastPitches, 1, probs) => int predictedLabel;
+
+        // Randomly vary prediction within ±1 to add subtle variation
+        Math.random2(-1, 1) +=> predictedLabel;
+
+        // Convert predicted label to local chord index
+        predictedLabel % 1000 => int chordIdx;
+        Math.min(Math.max(chordIdx, 0), currentNoteSet.size() - 1) => chordIdx;
+
+        // Avoid repeating the last two chords
+        while (chordIdx == recentChords[0] || chordIdx == recentChords[1])
+        {
+            Math.random2(0, currentNoteSet.size() - 1) => chordIdx;
+        }
+
+        // Update recent chord memory
+        recentChords[1] => recentChords[0];
+        chordIdx => recentChords[1];
+
+        // Get chosen chord
+        currentNoteSet[chordIdx] @=> int nextChord[][];
+
+        // Debug print
+        <<< "Step", i, ": predictedLabel =", predictedLabel,
+            "→ chordIdx =", chordIdx >>>;
+        <<< "Neighbor chosen →", labelNames[name], ": Chord", chordIdx, "Notes:" >>>;
+        for (int n; n < nextChord.size(); n++)
+            <<< "   Note:", nextChord[n][0], "Vel:", nextChord[n][1] >>>;
+
+        // Store & update
+        chordSeq << nextChord;
+        nextChord @=> lastChord;
     }
 
-    // Main performance loop
-    for (int i; i < durArray.size() && i < chordSeq.size(); i++) {
+    // 6. Performance playback loop
+    for (1 => int i; i < durArray.size() && i < chordSeq.size(); i++)
+    {
         durArray[i] * beat => dur durTime;
 
-        <<< "Instrument:", labelNames[name], "Step:", i,
+        <<< "Instrument:", labelNames[name],
+            "Step:", i,
             "Mode:", (results2[i] == 0 ? "Chord" : "Arp"),
             "Dur:", durArray[i] >>>;
 
-        // CHORD MODE
-        if (results2[i] == 0) {
-            <<< "→ chord" >>>;
-            // Play all notes simultaneously
-            for (int j; j < chordSeq[i].size(); j++) {
+        if (results2[i] == 0)
+        {
+            // --- Play Chord Mode ---
+            for (0 => int j; j < chordSeq[i].size(); j++)
+            {
                 chordSeq[i][j][0] => int note;
                 chordSeq[i][j][1] => int vel;
 
-                if(labelNames[0] == "/marimba"){
-                    if (vel < 79){
-                        80 => vel;
-                    }
-                    
-                    if (note < 60 && vel < 95){ 
-                        95 => vel;
-                    }
+                if (labelNames[0] == "/marimba")
+                {
+                    if (vel < 79) 80 => vel;
+                    if (note > 60 && vel < 95) 95 => vel;
                 }
+
                 spork ~ instPlay(labelNames[name], note, vel, durTime);
             }
-
-            // Advance time after full chord duration
             durTime => now;
         }
+        else
+        {
+            // --- Play Arpeggiated Mode ---
+            durTime / chordSeq[i].size() => dur subDur;
 
-        // ARP MODE
-        else if (results2[i] == 1) {
-            <<< "→ arp" >>>;
-            durTime / noteSetLength => dur subDur;
-
-            for (int j; j < chordSeq[i].size(); j++) {
+            for (0 => int j; j < chordSeq[i].size(); j++)
+            {
                 chordSeq[i][j][0] => int note;
                 chordSeq[i][j][1] => int vel;
 
-                if(labelNames[0] == "/marimba"){
-                    if (vel < 79){
-                        80 => vel;
-                    }
-                    
-                    if (note < 60 && vel < 95){ 
-                        95 => vel;
-                    }
+                if (labelNames[0] == "/marimba")
+                {
+                    if (vel < 79) 80 => vel;
+                    if (note > 60 && vel < 95) 95 => vel;
                 }
-                // sequentially play notes, each for subDur
+
                 instPlay(labelNames[name], note, vel, subDur);
             }
-
-            // no extra "durTime => now" here, since instPlay already advances time
         }
     }
 
-    //<<< "---", labelNames[name], "Measure Complete ---" >>>;
+    //<<< "---- rhythmicChordPattern() complete for", labelNames[name], "----" >>>;
 }
 
-
-
-
-while (true) {
+while (true)  {
     spork~rhythmicChordPattern(0); // generate + play new pattern
     //spork~rhythmicChordPattern(1);
     spork~breakBoPlay();
-    
-    totalBeats::beat => now; // wait one measure before restarting
 
-
+    totalBeats::beat => now;
 }
-
-

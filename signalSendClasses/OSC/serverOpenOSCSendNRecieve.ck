@@ -62,7 +62,7 @@ while(true){
 
     }
 
-    else if(instrument == "/galaPati"){
+    else if(instrument == "/ganaPati"){
 
         midiSendGala.messageSend(note, vel, 0);
         // for(0 => int i; i < values.size(); i++){

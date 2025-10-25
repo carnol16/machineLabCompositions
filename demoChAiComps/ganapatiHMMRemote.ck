@@ -10,6 +10,8 @@ if( !mout.open(0) ) me.exit();
 
 MidiMsg  msg;
 
+osc.init("192.168.1.145", 8001);
+
 float durArray[0];
 500::ms => dur beat;
 
