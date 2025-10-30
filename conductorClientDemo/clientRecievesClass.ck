@@ -6,7 +6,6 @@ public class clientReceive {
 
     // Initialize the OscIn once
     fun void init(int port) {
-        OscIn() => in;
         in.port(port);
         in.addAddress("/toClient");
     }
