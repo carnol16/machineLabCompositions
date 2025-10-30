@@ -8,7 +8,7 @@ bpmSet bpmClass;
 conductorSend ductSend;
 
 //send to clients
-["localhost"] @=> string ipAddress[];
+["192.168.1.145"] @=> string ipAddress[];
 [8005] @=> int port[];
 ["/time", "/freq", "/start"] @=> string address[];
 

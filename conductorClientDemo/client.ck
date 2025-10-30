@@ -27,10 +27,13 @@ SinOsc osc => ADSR env1 => dac;
 int position;
 0 => int start; // our flag
 
+// --- initialize clientReceive properly
+ductReceive.init(portDuct);
+
 // function to receive OSC messages
 fun void dataReceived() {
     while (true) {
-        ductReceive.receive(portDuct) @=> string data[];
+        ductReceive.receive() @=> string data[];
         
         if (data.size() == 0) continue;
         
@@ -77,5 +80,3 @@ spork ~ arp();
 while (true) {
     1::second => now;
 }
-
-
