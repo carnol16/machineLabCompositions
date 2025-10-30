@@ -2,12 +2,12 @@ public class clientReceive{
 
     OscIn in;
     OscMsg msg;
-    string data[];
+    string data[0];
 
     // Initialize the OscIn once, with port and address
     fun void init(int port) {
         in.port(port);
-        in.addAddress("/toClient");
+        //in.addAddress("/toClient");
     }
 
     fun string[] receive() {
@@ -21,7 +21,7 @@ public class clientReceive{
             // }
             // wait for event to arrive
             //in => now;
-            data.clear();
+            //data.clear();
             //<<<data, "data cleared">>>;
             
             // grab the next message from the queue. 
@@ -32,10 +32,12 @@ public class clientReceive{
                 msg.address => string address;
                 msg.getString(0) => string dataPoint1;
                 msg.getString(1) => string dataPoint2;
+                msg.getString(2) => string dataPoint3;
 
                 data << address;
                 data << dataPoint1;
                 data << dataPoint2;
+                data << dataPoint3;
                 
                 return data;
             }

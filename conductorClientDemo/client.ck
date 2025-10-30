@@ -36,22 +36,25 @@ fun void dataReceived() {
     while (true) {
         ductReceive.receive() @=> string data[];
         
-        if (data.size() == 0) continue;
+        //if (data.size() == 0) continue;
+        for(0 => int i; i < data.size(); i++){
+            <<<data[i]>>>;
+        }
         
         // handle messages
-        if (data[0] == "/time") {
-            Std.atoi(data[1]) => bpm;
-            Std.atoi(data[2]) => totalBeats;
+        if (data[1] == "/time") {
+            Std.atoi(data[2]) => bpm;
+            Std.atoi(data[3]) => totalBeats;
             bpmClass.bpm(bpm) => float msPerBeat;
             msPerBeat::ms => beat;
             <<<"Received time settings:", bpm, totalBeats>>>;
         }
-        else if (data[0] == "/freq") {
-            Std.atof(data[1]) => freq;
-            Std.atof(data[2]) => amp;
+        if (data[1] == "/freq") {
+            Std.atof(data[2]) => freq;
+            Std.atof(data[3]) => amp;
             <<<"Received freq:", freq, amp>>>;
         }
-        else if (data[0] == "/start") {
+        if (data[1] == "/start") {
             1 => start;
             <<<"Received start signal!">>>;
         }
@@ -70,6 +73,7 @@ fun void arp() {
             }
         } else {
             50::ms => now; // short wait to prevent busy loop
+            //<<<"AHHHH">>>;
         }
     }
 }
