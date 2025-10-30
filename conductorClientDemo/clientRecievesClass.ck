@@ -6,27 +6,8 @@ public class clientReceive{
 
     // Initialize the OscIn once, with port and address
     fun void init(int port) {
-        OscIn() => in;
         in.port(port);
-    }
-    string data[];
-
-    fun int start(){
-    
-        if(in.recv(msg)){
-            return 1;
-        }
-        return 0;
-    }  
-
-    fun int messageSent(){
-        
-        if(in.recv(msg)){
-            return 1;
-        }
-        else{
-            return 0;
-        }
+        in.addAddress("/toClient");
     }
 
     fun string[] receive() {
