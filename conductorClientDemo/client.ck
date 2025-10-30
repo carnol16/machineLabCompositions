@@ -11,6 +11,9 @@ clientReceive ductReceive;
 8001 => int portServer;
 8005 => int portDuct;
 
+// initialize OSC listener once
+ductReceive.init(portDuct);
+
 // defaults
 80 => int bpm;
 8 => int totalBeats;
@@ -32,7 +35,7 @@ int position;
 // receive OSC
 fun void dataReceived() {
     while (true) {
-        ductReceive.receive(portDuct) @=> string data[];
+        ductReceive.receive() @=> string data[];
         if (data.size() == 0) continue;
 
         if (data[0] == "/time") {
@@ -65,13 +68,12 @@ fun void arp() {
                 beat => now;
             }
         } else {
-            50::ms => now; // wait while not started
+            50::ms => now;
         }
     }
 }
 
 //--------------------------------------
-// run both
 spork ~ dataReceived();
 spork ~ arp();
 
