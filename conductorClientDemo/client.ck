@@ -32,37 +32,39 @@ ductReceive.init(portDuct);
 
 // function to receive OSC messages
 fun void dataReceived() {
-    while (true) {
+    while(true) {
         ductReceive.receive() @=> string data[];
-        
-        if (data.size() == 0) continue;
-        
+
+        if(data.size() == 0) {
+            50::ms => now; // prevent busy loop if no message
+            continue;
+        }
+
         // handle messages
-        if (data[0] == "/time") {
+        if(data[0] == "/time") {
             Std.atoi(data[1]) => bpm;
             Std.atoi(data[2]) => totalBeats;
             bpmClass.bpm(bpm) => float msPerBeat;
             msPerBeat::ms => beat;
             <<<"Received time settings:", bpm, totalBeats>>>;
         }
-        else if (data[0] == "/freq") {
+        else if(data[0] == "/freq") {
             Std.atof(data[1]) => freq;
             Std.atof(data[2]) => amp;
             <<<"Received freq:", freq, amp>>>;
         }
-        else if (data[0] == "/start") {
+        else if(data[0] == "/start") {
             1 => start;
             <<<"Received start signal!">>>;
         }
-        data.clear();
     }
 }
 
 // function to play an arpeggio
 fun void arp() {
-    while (true) {
-        if (start == 1) {
-            for (0 => int j; j < minor.cap(); j++) {
+    while(true) {
+        if(start == 1) {
+            for(0 => int j; j < minor.cap(); j++) {
                 Std.mtof(minor[j] + offset + position) => osc.freq;
                 1 => env1.keyOn;
                 beat => now;
@@ -77,6 +79,6 @@ fun void arp() {
 spork ~ dataReceived();
 spork ~ arp();
 
-while (true) {
+while(true) {
     1::second => now;
 }
