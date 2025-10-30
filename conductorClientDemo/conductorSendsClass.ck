@@ -12,13 +12,13 @@ public class conductorSend {
     //IP Address of clients will need put into this array
     [toClient1] @=> OscOut clientSend[]; // add clients as needed
 
-    string data[];
+    string data[0];
 
-fun void init(string ipAddress[], int port[]){
-    for(0 => int i; i < clientSend.size(); i++){
-        clientSend[i].dest(ipAddress[i], port[i]);
+    fun void init(string ipAddress[], int port[]){
+        for(0 => int i; i < clientSend.size(); i++){
+            clientSend[i].dest(ipAddress[i], port[i]);
+        }
     }
-}
 
 
     //compiles msg to send to client

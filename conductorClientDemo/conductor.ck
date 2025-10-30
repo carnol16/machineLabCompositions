@@ -28,6 +28,8 @@ Std.itoa(totalBeats) => string totalBeatsString;
 [address[0], bpmString, totalBeatsString] @=> string timeInfo[];
 ductSend.setMessages(timeInfo);
 
+1000::ms => now;
+
 [address[2], "1"] @=> string startInfo[];
 ductSend.setMessages(startInfo);
 
@@ -55,12 +57,13 @@ SinOsc osc => ADSR env1 => dac;
 48 => int offset;
 int position;
 
+100::ms => now;
 while(true){
 
     for(0 => int j; j < minor.cap(); j++){
         Std.mtof(minor[j] + offset + position) => osc.freq;
         1 => env1.keyOn;
-        beat / 2 => now;
+        beat => now;
     }
 
 }
