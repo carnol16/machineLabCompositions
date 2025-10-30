@@ -12,7 +12,7 @@ clientReceive ductReceive;
 8005 => int portDuct;
 
 //Instrument sends adn notes
-["/marimba", "/breakBot", "/tammy", "/ganapali"] @=> string instAddress;
+["/marimba", "/breakBot", "/tammy", "/ganapali"] @=> string instAddress[];
 
 //notes for breakBot
 [0, 1, 3, 5, 11] @=> int breakBotArray[];
@@ -32,6 +32,7 @@ msPerBeat::ms => dur beat;
 
 //setup sound
 SinOsc osc => ADSR env1 => dac;
+
 0.4 => osc.gain;
 
 440.0 => float freq;
@@ -40,7 +41,7 @@ SinOsc osc => ADSR env1 => dac;
 48 => int offset;
 int position;
 0 => int start; // our flag
-amp => osc.gain;
+//amp => osc.gain;
 (1::ms, beat / 8, 0, 1::ms) => env1.set;
 // --- initialize clientReceive properly
 ductReceive.init(portDuct);
