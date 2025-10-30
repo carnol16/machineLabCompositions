@@ -6,56 +6,56 @@ oscSends oscSends;
 bpmSet bpmClass;
 clientReceive ductReceive;
 
-"192.168.1.145" => string ipAddress;
+// connection info
+"192.168.1.145" => string ipAddressServer;
 8001 => int portServer;
 8005 => int portDuct;
 
+// defaults
 80 => int bpm;
 8 => int totalBeats;
-
 bpmClass.bpm(bpm) => float msPerBeat;
 msPerBeat::ms => dur beat;
 
+// synth setup
 SinOsc osc => ADSR env1 => dac;
-440.0 => float freq;
-0.0 => float amp;
+0.4 => osc.gain;
 
+440.0 => float freq;
 [0, 4, 7] @=> int major[];
 [0, 3, 7] @=> int minor[];
-
 48 => int offset;
 int position;
-0 => int start; // our flag
+0 => int start;
 
-// function to receive OSC messages
+//--------------------------------------
+// receive OSC
 fun void dataReceived() {
     while (true) {
         ductReceive.receive(portDuct) @=> string data[];
-        
         if (data.size() == 0) continue;
-        
-        // handle messages
+
         if (data[0] == "/time") {
             Std.atoi(data[1]) => bpm;
             Std.atoi(data[2]) => totalBeats;
             bpmClass.bpm(bpm) => float msPerBeat;
             msPerBeat::ms => beat;
-            <<<"Received time settings:", bpm, totalBeats>>>;
+            <<<"Received /time:", bpm, totalBeats>>>;
         }
         else if (data[0] == "/freq") {
             Std.atof(data[1]) => freq;
-            Std.atof(data[2]) => amp;
-            <<<"Received freq:", freq, amp>>>;
+            <<<"Received /freq:", freq>>>;
         }
         else if (data[0] == "/start") {
             1 => start;
-            <<<"Received start signal!">>>;
+            <<<"Received /start signal – GO!">>>;
         }
         data.clear();
     }
 }
 
-// function to play an arpeggio
+//--------------------------------------
+// simple arpeggiator
 fun void arp() {
     while (true) {
         if (start == 1) {
@@ -65,17 +65,14 @@ fun void arp() {
                 beat => now;
             }
         } else {
-            50::ms => now; // short wait to prevent busy loop
+            50::ms => now; // wait while not started
         }
     }
 }
 
-// start both in parallel
+//--------------------------------------
+// run both
 spork ~ dataReceived();
 spork ~ arp();
 
-while (true) {
-    1::second => now;
-}
-
-
+while (true) 1::second => now;
