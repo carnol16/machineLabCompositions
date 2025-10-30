@@ -78,9 +78,52 @@ fun void arp() {
     }
 }
 
-// start both in parallel
+// in machine lab.
+
+
+oscSends.init(ipAddress, portServer);
+
+
+fun void testBotPlay(){
+  while(true){
+            for(0 => int i; i < totalBeats; i++){
+                oscSends.send("/breakBot", 1, 127);
+                if(i % 2 == 1){
+                    oscSends.send("/breakBot", 5, 127);
+                }
+                if(i % 4 == 0){
+                    oscSends.send("/breakBot", 11, 127);
+                }
+                beat => now;
+            }
+  }
+}
+
+fun void breakBotPlay(){
+    while(true){
+        if(start == 1){
+            for(0 => int i; i < totalBeats; i++){
+                oscSends.send("/breakBot", 1, 127);
+                if(i % 2 == 1){
+                    oscSends.send("/breakBot", 5, 127);
+                }
+                if(i % 4 == 0){
+                    oscSends.send("/breakBot", 11, 127);
+                }
+                beat => now;
+            }
+        } else {
+            50::ms => now; // short wait to prevent busy loop
+            //<<<"AHHHH">>>;
+        }
+    }
+}
+
+// start in parallel
 spork ~ dataReceived();
-spork ~ arp();
+// spork ~ arp();
+// spork ~ testBotPlay();
+spork ~ breakBotPlay();
 
 while (true) {
     1::second => now;
