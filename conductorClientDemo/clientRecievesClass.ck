@@ -2,13 +2,11 @@ public class clientReceive{
 
     OscIn in;
     OscMsg msg;
-    OscOut localSend;
+    string data[];
 
-    //localSend.dest("localhost", 6000)
-    
-
-    fun init(int port){
-
+    // Initialize the OscIn once, with port and address
+    fun void init(int port) {
+        OscIn() => in;
         in.port(port);
     }
     string data[];

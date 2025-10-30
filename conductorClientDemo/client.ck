@@ -18,7 +18,7 @@ msPerBeat::ms => dur beat;
 
 SinOsc osc => ADSR env1 => dac;
 440.0 => float freq;
-0.0 => float amp;
+0.8 => float amp;
 
 [0, 4, 7] @=> int major[];
 [0, 3, 7] @=> int minor[];
@@ -26,7 +26,9 @@ SinOsc osc => ADSR env1 => dac;
 48 => int offset;
 int position;
 0 => int start; // our flag
-
+amp => osc.gain;
+(1::ms, beat / 8, 0, 1::ms) => env1.set;
+// --- initialize clientReceive properly
 ductReceive.init(portDuct);
 
 // function to receive OSC messages
