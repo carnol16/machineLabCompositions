@@ -10,7 +10,7 @@ public class conductorSend {
 
 
     //IP Address of clients will need put into this array
-    [toClient1] @=> OscOut clientSend[]; // add clients as needed
+    [toClient1, toClient2] @=> OscOut clientSend[]; // add clients as needed
 
     string data[0];
 
