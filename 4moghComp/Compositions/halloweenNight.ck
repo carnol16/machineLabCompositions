@@ -43,7 +43,7 @@ HMM hmmHarmonic[5];
 
 /// this is my basic scale.
 [0, 7, 5, 7, 10, 7, 7, 5, 3, 5, 0, 0, 0, 7, 5, 3, 5] @=> int basicScale[];
-//1, 3, 5, 7, 10
+//0, 3, 5, 7, 10
 
 // these are the suggested harmonic possibilities 
 // for each note in the scale
