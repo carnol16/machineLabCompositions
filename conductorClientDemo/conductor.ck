@@ -2,84 +2,133 @@
 @import "../templateFiles/bpmSetClass.ck";
 @import "./conductorSendsClass.ck";
 
+
 oscSends oscSends;
 bpmSet bpmClass;
 conductorSend ductSend;
+HMM hmm;
 
 //send to clients
-["192.168.1.145"] @=> string ipAddress[];
-[8005] @=> int port[];
-["/time", "/freq", "/start"] @=> string ductAddress[];
+["192.168.1.148", "192.168.1.117"] @=> string ipAddress[];
 
-//["/marimba", "/breakBot", "/tammy", "/ganapali"] @=> string instAddress[];
+[8005, 8006] @=> int port[];
+["/time", "/freq", "/start"] @=> string address[];
+
+"192.168.1.145" => string ipAddressServer;
+8001 => int portServer;
+
 
 ductSend.init(ipAddress, port);
 
-120 => int bpm;
-16 => int totalBeats;
+oscSends.init(ipAddressServer, portServer);
+
+
+80 => int bpm;
+
 
 bpmClass.bpm(bpm) => float msPerBeat;
 msPerBeat::ms => dur beat;
+16 => int totalBeats;
 
-//--------------------------------------
-// send initial setup
 Std.itoa(bpm) => string bpmString;
 Std.itoa(totalBeats) => string totalBeatsString;
 
-[ductAddress[0], bpmString, totalBeatsString] @=> string timeInfo[];
+[address[0], bpmString, totalBeatsString] @=> string timeInfo[];
 ductSend.setMessages(timeInfo);
 
-// send freq/amp info
-["/freq", "440.0", "1.0"] @=> string freqMsg[];
-ductSend.setMessages(freqMsg);
+1000::ms => now;
 
-[ductAddress[2], "1"] @=> string startInfo[];
+[address[2], "1"] @=> string startInfo[];
 ductSend.setMessages(startInfo);
 
-// send start command
-["/start", "1", "0"] @=> string startMsg[];
-ductSend.setMessages(startMsg);
+//piece for conductor
+fun string toString(int dataPoint){
+    Std.itoa(dataPoint) => string pointString;
+    return pointString;
+}
 
+fun int toInt(string dataPoint){
+    Std.atoi(dataPoint) => int pointInt;
+    return pointInt;
+}
 
-//setup sound
 SinOsc osc => ADSR env1 => dac;
-0.3 => osc.gain;
+
+0.5 => osc.gain;
+
 (1::ms, beat / 8, 0, 1::ms) => env1.set;
+
 
 [0, 4, 7] @=> int major[];
 [0, 3, 7] @=> int minor[];
+
 48 => int offset;
 int position;
 
-fun void arp(){
 
-        for(0 => int j; j < minor.cap(); j++){
-        Std.mtof(minor[j] + offset + position) => osc.freq;
-        1 => env1.keyOn;
-        beat / 2 => now;
-    }
+// Marimba MIDI notes
+[45, 47, 48, 50, 52, 53, 54, 55, 57, 59, 
+60, 62, 64, 65, 66, 67, 69, 71, 72, 74, 
+76, 77, 78, 79, 81, 83, 84, 86, 88, 89, 
+90, 91, 93, 95, 96] @=> int mScl[];
+
+fun void marimbotSend(int note, int vel){
+    oscSends.send("/marimba", note, vel);
+
 }
 
-// //create and send notes
-// fun void instSend(string instrument, int note, int vel) {
-//     oscSends.send(instrument, note, vel);
-// }
+fun void marimbotPlay(int note, int vel, dur long){
+   marimbotSend(note, vel);
+   long => now;
+   marimbotSend(note, 0);
+}
 
-// fun void instPlay(string instrument, int note, int vel) {
-    
-//     instSend(instrument, note, vel);
-//     100::ms => now;
-//     instSend(instrument, note, 0);    
+fun void marimBotOut(){
+    while(true){
+        [10, 21, 28, 2, 32, 5, 34, 22, 15, 4] @=> int observations2[];
+        hmm.train( 2, 36, observations2 );
+        int results2[16];
+        hmm.generate( 16, results2 );
 
-// }
+        
+
+        // output
+        for ( 0 => int i; i < results2.size(); i++ )
+        {
+            
+            //chout <= results2[i] <= " ";
+            marimbotPlay( mScl[results2[i]], 127, beat);
+
+            chout <= results2[i] <= " ";
+            
+        }
+        <<<"Slices">>>;
+        chout <= IO.newline();
+        chout <= IO.newline();
+    }
+    //noteDur();
 
 
+}
 
-100::ms => now;
+fun void arp() {
+    while (true) {
+        for (0 => int j; j < minor.cap(); j++) {
+            Std.mtof(minor[j] + offset + position) => osc.freq;
+            1 => env1.keyOn;
+            beat => now;
+        } 
+    }
+}
+150::ms => now;
 
-spork~ arp();
+spork~ marimBotOut();
+//spork~ arp();
 
 while(true){
     1::second => now;
 
 }
+
+
+

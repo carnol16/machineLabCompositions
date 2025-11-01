@@ -2,53 +2,34 @@
 @import "../templateFiles/bpmSetClass.ck";
 @import "./clientRecievesClass.ck";
 
-oscSends oscSendInst;
+oscSends oscSends;
 bpmSet bpmClass;
 clientReceive ductReceive;
 
-// connection info
-"192.168.1.145" => string ipAddressServer;
+"192.168.1.145" => string ipAddress;
 8001 => int portServer;
 8005 => int portDuct;
 
-//Instrument sends adn notes
-["/marimba", "/breakBot", "/tammy", "/ganapali"] @=> string instAddress[];
-
-//notes for breakBot
-[0, 1, 3, 5, 11] @=> int breakBotArray[];
-
-//notes for ganapati
-[1, 2, 3, 7, 8, 10, 12, 13, 14] @=> int ganapatiArray[];
-
-//notes for tammy
-[2, 3, 4, 5, 6, 7, 8, 10, 12, 13, 14] @=> int tammyArray[];
-
-
-//time based parameters
 80 => int bpm;
 8 => int totalBeats;
+
 bpmClass.bpm(bpm) => float msPerBeat;
 msPerBeat::ms => dur beat;
 
-//setup sound
 SinOsc osc => ADSR env1 => dac;
-
-0.4 => osc.gain;
-
 440.0 => float freq;
+0.8 => float amp;
+
 [0, 4, 7] @=> int major[];
 [0, 3, 7] @=> int minor[];
+
 48 => int offset;
 int position;
 0 => int start; // our flag
-//amp => osc.gain;
+amp => osc.gain;
 (1::ms, beat / 8, 0, 1::ms) => env1.set;
 // --- initialize clientReceive properly
 ductReceive.init(portDuct);
-
-//connect to robotic server
-oscSendInst.init(ipAddressServer, 8005);
-
 
 // function to receive OSC messages
 fun void dataReceived() {
@@ -64,24 +45,24 @@ fun void dataReceived() {
         if (data[1] == "/time") {
             Std.atoi(data[2]) => bpm;
             Std.atoi(data[3]) => totalBeats;
-            bpmClass.bpm(bpm) => msPerBeat;
+            bpmClass.bpm(bpm) => float msPerBeat;
             msPerBeat::ms => beat;
-            <<<"Received /time:", bpm, totalBeats>>>;
+            <<<"Received time settings:", bpm, totalBeats>>>;
         }
-        else if (data[0] == "/freq") {
-            Std.atof(data[1]) => freq;
-            <<<"Received /freq:", freq>>>;
+        if (data[1] == "/freq") {
+            Std.atof(data[2]) => freq;
+            Std.atof(data[3]) => amp;
+            <<<"Received freq:", freq, amp>>>;
         }
-        else if (data[0] == "/start") {
+        if (data[1] == "/start") {
             1 => start;
-            <<<"Received /start signal – GO!">>>;
+            <<<"Received start signal!">>>;
         }
         data.clear();
     }
 }
 
-//--------------------------------------
-// simple arpeggiator
+// function to play an arpeggio
 fun void arp() {
     while (true) {
         if (start == 1) {
@@ -91,42 +72,58 @@ fun void arp() {
                 beat => now;
             }
         } else {
-            50::ms => now;
+            50::ms => now; // short wait to prevent busy loop
+            //<<<"AHHHH">>>;
         }
     }
 }
 
+// in machine lab.
 
-//create and send notes
-fun void instSend(string instrument, int note, int vel) {
-    osc.send(instrument, note, vel);
+
+oscSends.init(ipAddress, portServer);
+
+
+fun void testBotPlay(){
+  while(true){
+            for(0 => int i; i < totalBeats; i++){
+                oscSends.send("/breakBot", 1, 127);
+                if(i % 2 == 1){
+                    oscSends.send("/breakBot", 5, 127);
+                }
+                if(i % 4 == 0){
+                    oscSends.send("/breakBot", 11, 127);
+                }
+                beat => now;
+            }
+  }
 }
 
-fun void instPlay(string instrument, int note, int vel) {
-    
-    instSend(instrument, note, vel);
-    100::ms => now;
-    instSend(instrument, note, 0);    
-
-}
-
-fun void breakBoPlay(){
-    for(0 => int i; i < totalBeats; i++){
-        osc.send("/breakBot", 1, 127);
-        if(i % 2 == 1){
-            osc.send("/breakBot", 5, 127);
+fun void breakBotPlay(){
+    while(true){
+        if(start == 1){
+            for(0 => int i; i < totalBeats; i++){
+                oscSends.send("/breakBot", 1, 127);
+                if(i % 2 == 1){
+                    oscSends.send("/breakBot", 5, 127);
+                }
+                if(i % 4 == 0){
+                    oscSends.send("/breakBot", 11, 127);
+                }
+                beat => now;
+            }
+        } else {
+            50::ms => now; // short wait to prevent busy loop
+            //<<<"AHHHH">>>;
         }
-        if(i % 4 == 0){
-            osc.send("/breakBot", 11, 127);
-        }
-        beat => now;
     }
 }
 
-// start both in parallel
+// start in parallel
 spork ~ dataReceived();
-spork ~ arp();
-spork~ breakBoPlay();
+// spork ~ arp();
+// spork ~ testBotPlay();
+spork ~ breakBotPlay();
 
 while (true) {
     1::second => now;
