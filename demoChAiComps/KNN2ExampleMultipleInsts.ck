@@ -251,7 +251,7 @@ fun void rhythmicChordPattern(int name){
 
         // KNN prediction
         float probs[0];
-        knn.predict(lastPitches, 1, probs) => int predictedLabel;
+        knn.predict(lastPitches, 5, probs) => int predictedLabel;
 
         // Randomly vary prediction within ±1 to add subtle variation
         Math.random2(-1, 1) +=> predictedLabel;
