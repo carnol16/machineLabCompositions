@@ -124,7 +124,6 @@ for (0 => int i; i < 16; i++)
     1 => envHarm[i].keyOff;
 }
 
-
 15::second => now;
 
 public int fetchIndex(int noteNum)
