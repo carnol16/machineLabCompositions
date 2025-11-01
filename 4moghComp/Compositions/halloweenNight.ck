@@ -13,7 +13,7 @@ ADSR env[16];
 ADSR envHarm[16];
 
 NRev rev;
-0.7 => rev.mix;
+1.0 => rev.mix;
 
 chout <= "*****************";
 chout <= IO.newline();
@@ -42,17 +42,17 @@ HMM hmmScale;
 HMM hmmHarmonic[5];
 
 /// this is my basic scale.
-[1, 7, 5, 7, 10, 7, 7, 5, 3, 5, 1, 1, 1, 7, 5, 3, 5] @=> int basicScale[];
+[0, 7, 5, 7, 10, 7, 7, 5, 3, 5, 0, 0, 0, 7, 5, 3, 5] @=> int basicScale[];
 //1, 3, 5, 7, 10
 
 // these are the suggested harmonic possibilities 
 // for each note in the scale
 [
-    [7, 7, 7, 3], // INDEX 0: harmonic choices for 1
+    [7, 7, 7, 3], // INDEX 0: harmonic choices for 0 (7,7,7,3)
     [5, 5, 5, 12], // INDEX 1: harmonic choices for 3
-    [1], // INDEX 2: harmonic choices for 5
-    [10, 10, 10, 3, 1], // INDEX 3: harmonic choices for 7
-    [7, 7, 1] // INDEX 4: harmonic choices for 10
+    [1, 1, 0], // INDEX 2: harmonic choices for 5
+    [10, 10, 10, 3, 0], // INDEX 3: harmonic choices for 7
+    [7, 7, 0] // INDEX 4: harmonic choices for 10
 
 ] @=> int scaleHarmonizations[][];
 
@@ -95,34 +95,42 @@ for (0 => int i; i < 5; i++)
     chout <= IO.newline();
 }
 
-chout <= IO.newline();
+//chout <= IO.newline();
 
 1::second => now;
 
-while(true)
+for (0 => int i; i < 16; i++)
 {
-    for (0 => int i; i < 16; i++)
-    {
-        chout <= "current scaleResults note: " <= scaleResults[i];
-        chout <= IO.newline();
-        scaleResults[i] => int currentNote;
+    scaleResults[i] => int currentNote;
 
-        Std.mtof(currentNote+59) => sillySound[i].freq;
-        Std.mtof(harmResults[fetchIndex(currentNote)][Math.random2(0, 3)]+59+12) => sillySoundHarm[i].freq;
+    chout <= "i: " <= i <= "/////// currentNote: " <= currentNote;
+    chout <= IO.newline();
 
-        1 => env[i].keyOn;
-        1 => envHarm[i].keyOn;
-        Math.random2f(1, 5)::second => now;
-        1 => env[i].keyOff;
-        1 => envHarm[i].keyOff;
-    }
+    Std.mtof(currentNote+63) => sillySound[i].freq;
+
+    harmResults[fetchIndex(currentNote)][Math.random2(0, 3)] => int harmNote;
+
+    chout <= "harmNote: " <= harmNote;
+    chout <= IO.newline();
+
+    Std.mtof(harmNote+63+12) => sillySoundHarm[i].freq;
+
+    1 => env[i].keyOn;
+    1 => envHarm[i].keyOn;
+
+    Math.random2f(1, 3)::second => now;
+    
+    1 => env[i].keyOff;
+    1 => envHarm[i].keyOff;
 }
-10::second => now;
+
+
+15::second => now;
 
 public int fetchIndex(int noteNum)
 {
     -1 => int indexVal;
-    if (noteNum == 1)
+    if (noteNum == 0)
         0 => indexVal;
     if (noteNum == 3)
         1 => indexVal;
