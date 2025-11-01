@@ -13,7 +13,7 @@ ADSR env[16];
 ADSR envHarm[16];
 
 NRev rev;
-0.1 => rev.mix;
+0.7 => rev.mix;
 
 chout <= "*****************";
 chout <= IO.newline();
@@ -25,14 +25,17 @@ for (0 => int i; i < 16; i++)
 
     (1.0/16.0) => sillySound[i].gain;
 
-    env[i] => dac.right;
+    env[i] => dac;
 
-    (0.3/16.0) => sillySoundHarm[i].gain;
+    (0.05/16.0) => sillySoundHarm[i].gain;
     (5, 3, 0.1, 8) => envHarm[i].set;
     sillySoundHarm[i] => envHarm[i] => rev;
+
+    if(i%2 == 0) envHarm[i] => dac.left;
+    if(i%2 == 1) envHarm[i] => dac.right;
 }
 
-rev => dac.left;
+rev => dac;
 
 HMM hmmScale;
 
