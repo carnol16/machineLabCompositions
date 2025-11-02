@@ -81,7 +81,7 @@ for (int inst; inst < pitchedNoteSets.size(); inst++) {
     // Loop through all chords in that instrument
     for (int i; i < pitchedNoteSets[inst].size(); i++) {
         float v[0];
-        // Grab all velocities in that chord
+        // Grab all notes in that chord
         for (int j; j < pitchedNoteSets[inst][i].size(); j++) {
             v << pitchedNoteSets[inst][i][j][1];
         }
