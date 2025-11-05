@@ -4,7 +4,7 @@
 // i want to learn array operations
 //      - how do i remove items?
 //      - how do i add items
-//      - for the second argument of hmm.train -- is it just the max value + 1? also, does the array need to have all the intermediate values?
+//      xx for the second argument of hmm.train -- is it just the max value + 1? also, does the array need to have all the intermediate values?
 
 SinOsc sillySound[16];
 TriOsc sillySoundHarm[16];
@@ -99,7 +99,9 @@ for (0 => int i; i < 5; i++)
 
 1::second => now;
 
-for (0 => int i; i < 16; i++)
+while (true)
+{
+    for (0 => int i; i < 16; i++)
 {
     scaleResults[i] => int currentNote;
 
@@ -123,6 +125,8 @@ for (0 => int i; i < 16; i++)
     1 => env[i].keyOff;
     1 => envHarm[i].keyOff;
 }
+}
+
 
 15::second => now;
 

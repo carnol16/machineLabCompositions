@@ -3,7 +3,7 @@
 // 25 October 2025
 
 //entire the pitch class in this array. no duplicates!
-[67, 61, 62, 66, 60, 68] @=> int pitchColl[];
+[60, 63, 68] @=> int pitchColl[];
 int pitchCollPairs[calcNumPairs()][2];
 
 popArray();
