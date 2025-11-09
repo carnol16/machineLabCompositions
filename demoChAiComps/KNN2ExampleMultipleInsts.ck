@@ -1,7 +1,5 @@
-//======================================
 // Rhythmic KNN Marimba Pattern Generator v2
-// Using HMM rhythm pattern from Colton Arnold (Fall 2025)
-//======================================
+// Written by Colton Arnold (Fall 2025)
 
 @import "../signalSendClasses/OSC/globalOSCSendClass.ck";
 @import "../templateFiles/bpmSetClass.ck";
@@ -13,8 +11,8 @@ oscSends osc;
 oscSends oscLydia;
 bpmSet bpmClass;
 
-osc.init("192.168.1.145", 8001);
-oscLydia.init("192.168.1.145", 50000);
+osc.init("192.168.0.15", 8001);
+oscLydia.init("192.168.0.15", 50000);
 ["/marimba", "/trimpbeat"] @=> string labelNames[];
 
 // Combined note sets per instrument
@@ -334,13 +332,12 @@ fun void rhythmicChordPattern(int name){
         }
     }
 
-    //<<< "---- rhythmicChordPattern() complete for", labelNames[name], "----" >>>;
 }
 
 while (true)  {
     spork~rhythmicChordPattern(0); // generate + play new pattern
     //spork~rhythmicChordPattern(1);
-    spork~breakBoPlay();
+    //spork~breakBoPlay();
 
     totalBeats::beat => now;
 }

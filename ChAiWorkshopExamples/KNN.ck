@@ -55,3 +55,7 @@ fun knnTraining(){
         <<< "Neighbor", i, "=", labels[neighborLabels[i]] >>>;
     }
 }
+
+fun makeRandomChord(){
+    
+}

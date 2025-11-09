@@ -73,13 +73,11 @@ fun setKnnSin(int chordIndex)
 
 fun int knnTraining(int chord[])
     {
-        for (0 => int i; i < labelSize; i++)
-    {
-        for(0 => int j; j < noteSetLength; j++)
-        {
-        triads[i][j] * 1.0 => features [i][j];
+        for (0 => int i; i < labelSize; i++){
+            for(0 => int j; j < noteSetLength; j++){
+                triads[i][j] * 1.0 => features [i][j];
+            }
         }
-    }
 
     knn.train(features);
 
@@ -88,7 +86,7 @@ fun int knnTraining(int chord[])
 
     convertIntFloat(chord) @=> float testChord[]; // A/C#
 
-    knn.search(testChord, 2, neighborLabels); // our k value is 2.
+    knn.search(testChord, 3, neighborLabels); // our k value is 2.
 
     //<<<"Nearest neighobrs by index:", neighborLabels[0], neighborLabels[1]>>>;
 
