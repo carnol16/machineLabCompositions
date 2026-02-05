@@ -5,18 +5,19 @@
 
 oscSends osc;
 // Marimba MIDI notes
-[45, 47, 48, 50, 52, 53, 54, 55, 57, 59, 
-60, 62, 64, 65, 66, 67, 69, 71, 72, 74, 
-76, 77, 78, 79, 81, 83, 84, 86, 88, 89, 
-90, 91, 93, 95, 96] @=> int mScl[];
+[
+[0, 1, 2, 3, 4, 5, 6, 7],
+[8, 9, 10, 11, 12, 13, 14, 15],
+[16, 17, 18, 19, 20, 21, 22, 23],
+[24, 25, 26, 27, 28, 29, 30, 31],
+[32, 33, 34, 35, 36, 37, 38, 39]] @=> int mScl[][];
 
 HMM hmm;
 
-"192.168.0.15" => string ipAddress;
-8001 => int port;
+osc.init("192.168.0.15", 8001);
 
 float durArray[0];
-500::ms => dur beat;
+250::ms => dur beat;
 
 // Note Duration HMM
 fun void noteDur() {
@@ -65,9 +66,8 @@ fun void noteDur() {
 }
 
 fun void marimbotSend(int note, int vel){
-
-    osc.init(ipAddress, port);
-    osc.send("/marimba", note, vel);
+    osc.init("192.168.0.15", 8001);
+    osc.send("/modulettes", note, vel);
 
 }
 
@@ -81,8 +81,8 @@ fun void marimBotOut(){
 
     noteDur();
 
-    [10, 21, 28, 2, 32, 5, 34, 22, 15, 4] @=> int observations2[];
-    hmm.train( 2, 36, observations2 );
+    [2, 1, 2, 3, 4, 0, 1] @=> int observations2[];
+    hmm.train( 2, 6, observations2 );
     int results2[16];
     hmm.generate( 16, results2 );
 
@@ -93,7 +93,7 @@ fun void marimBotOut(){
     {
         
         //chout <= results2[i] <= " ";
-        marimbotPlay( mScl[results2[i]], 127, durArray[i] * beat);
+        marimbotPlay( mScl[results2[i]][Math.random2(0, 7)], 127, durArray[i] * beat);
 
         chout <= results2[i] <= " ";
         

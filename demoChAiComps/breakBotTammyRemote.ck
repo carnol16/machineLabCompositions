@@ -1,20 +1,23 @@
-//Written by Colton Arnold Fall 2025
+// Created by Colton Arnold Fall 2025
+
+@import "../signalSendClasses/midi/midiInstrumentClass.ck";
+@import "../templateFiles/bpmSetClass.ck";
+@import "../signalSendClasses/OSC/globalOSCSendClass.ck";
 
 HMM hmm;
-@import "../signalSendClasses/OSC/globalOSCSendClass.ck"; //osc send for monitor
 oscSends osc;
+midiInstrumentSends midiSend;
+bpmSet bpmTime;
 
-MidiOut mout;
+"192.168.0.15" => string ipAddress;
+8001 => int port;
 
-if( !mout.open(0) ) me.exit();
+<<<bpmTime.bpm(120)>>>;
 
-MidiMsg  msg;
-
-osc.init("192.168.0.15", 8001);
 
 float durArray[0];
-500::ms => dur beat;
-
+bpmTime.bpm(120)::ms => dur beat;
+//[2, 3, 4, 5, 6, 7, 8, 10, 12, 13, 14] @=> int tammyArray[];
 fun void noteDur() {
     32 => int length;
 
@@ -69,17 +72,18 @@ fun void drumbotPlay(int note, int vel, dur long){
 }
 
 fun void drumbotSend(int note, int vel){
+    osc.init(ipAddress, port);
+    osc.send("/tammy", note, vel);
 
-    //osc.init(ipAddress, port);
-    osc.send("/ganaPati", note, vel);
+    
 }
 
 fun void drumBotOut(){
 
     noteDur();
 
-    [2, 4, 1, 3, 3, 3, 1] @=> int observations2[];
-    hmm.train( 2, 6, observations2 );
+    [10, 7, 8, 0, 3, 10, 13] @=> int observations2[];
+    hmm.train( 2, 16, observations2 );
     int results2[16];
     hmm.generate( 16, results2 );
 

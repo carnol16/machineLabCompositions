@@ -1,7 +1,7 @@
 // Created by Colton Arnold Fall 2025
 
 @import "../signalSendClasses/midi/midiInstrumentClass.ck";
-@import "../bpmSetClass.ck";
+@import "../templateFiles/bpmSetClass.ck";
 @import "../signalSendClasses/OSC/globalOSCSendClass.ck";
 
 HMM hmm;
@@ -9,7 +9,7 @@ oscSends osc;
 midiInstrumentSends midiSend;
 bpmSet bpmTime;
 
-"192.168.1.145" => string ipAddress;
+"192.168.0.15" => string ipAddress;
 8001 => int port;
 
 <<<bpmTime.bpm(120)>>>;

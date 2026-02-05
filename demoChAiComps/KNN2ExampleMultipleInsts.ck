@@ -96,7 +96,7 @@ knn.train(features, labels);
 float durArrayMarimba[0];
 float durArrayLydia[0];
 int orderArray[0];
-bpmClass.bpm(80) => float msPerBeat;
+bpmClass.bpm(90) => float msPerBeat;
 msPerBeat::ms => dur beat;
 16 => int totalBeats;
 
@@ -121,7 +121,7 @@ fun float[] noteDur() {
 
         if (results1[i] == 0) { 0.5 => duration; }
         else if (results1[i] == 1) { 1.0 => duration; }
-        else if (results1[i] == 2) { 2.0 => duration; }
+        else if (results1[i] == 2) { 3.0 => duration; }
         else { continue; }
 
         counter + duration => counter;
@@ -232,7 +232,7 @@ fun void rhythmicChordPattern(int name){
         {
             lastChord[j][0] => float pitch;
             // Add small random noise to avoid identical vectors
-            (pitch + (Math.random2(-10, 10) / 10.0)) => float noisyPitch;
+            (pitch + (Math.random2(-5, 5) / 10.0)) => float noisyPitch;
             lastPitches << noisyPitch;
             pitchSum + noisyPitch => noisyPitch;
             if (noisyPitch < pitchMin){
@@ -337,7 +337,7 @@ fun void rhythmicChordPattern(int name){
 while (true)  {
     spork~rhythmicChordPattern(0); // generate + play new pattern
     //spork~rhythmicChordPattern(1);
-    //spork~breakBoPlay();
+    spork~breakBoPlay();
 
     totalBeats::beat => now;
 }
